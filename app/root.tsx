@@ -4,7 +4,21 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  type MetaFunction,
 } from "@remix-run/react";
+import stylesheet from "~/styles/global.css?url";
+
+export const meta: MetaFunction = () => {
+  return [
+    { title: "Remix SPA Dashboard" },
+    {
+      name: "description",
+      content: "A template for building a SPA dashboard with Remix.",
+    },
+  ];
+};
+
+export const links = () => [{ rel: "stylesheet", href: stylesheet }];
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
