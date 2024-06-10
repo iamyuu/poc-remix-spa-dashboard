@@ -25,6 +25,12 @@ module.exports = {
   extends: ["eslint:recommended"],
 
   overrides: [
+    // Stylistic
+    {
+			files: ["**/*.{js,jsx,ts,tsx}"],
+      plugins: ["@stylistic"],
+    },
+
     // React
     {
       files: ["**/*.{js,jsx,ts,tsx}"],
@@ -47,6 +53,12 @@ module.exports = {
         "import/resolver": {
           typescript: {},
         },
+      },
+      rules: {
+        "react/prop-types": "off",
+        "react/react-in-jsx-scope": "off",
+        "react/jsx-uses-react": "off",
+        "react/jsx-uses-vars": "off",
       },
     },
 
