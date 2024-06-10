@@ -9,18 +9,25 @@ import {
 } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { redirect, type ClientActionFunction } from "@remix-run/react";
-
-export const clientAction: ClientActionFunction = async ({ request }) => {
-  const formData = await request.formData();
-  console.log(formData.values());
-
-  return redirect("/");
-};
+import { FormField } from "~/components/form/form-field";
+import { useFormMutation } from "~/hooks/use-form-mutation";
+import { loginWithEmailAndPassword } from "~/features/auth/services/login";
+import { LoginSchema } from "~/features/auth/schemas/login";
+import { useNavigate } from "@remix-run/react";
 
 function LoginForm() {
+  const navigate = useNavigate();
+  const { form } = useFormMutation({
+    schema: LoginSchema,
+    mutationFn: loginWithEmailAndPassword,
+    onSuccess: (newSession) => {
+      console.log("newSession", newSession);
+      navigate("/");
+    },
+  });
+
   return (
-    <form>
+    <form {...form.getFormProps()}>
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle className="text-2xl">Login</CardTitle>
@@ -29,22 +36,18 @@ function LoginForm() {
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="m@example.com"
-              required
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" required />
-          </div>
+          <FormField label="Email" {...form.getFieldProps("email")}>
+            <Input type="email" placeholder="m@mail.co" />
+          </FormField>
+
+          <FormField label="Password" {...form.getFieldProps("password")}>
+            <Input type="password" />
+          </FormField>
         </CardContent>
         <CardFooter>
-          <Button className="w-full">Sign in</Button>
+          <Button {...form.getButtonSubmitProps()} className="w-full">
+            Sign in
+          </Button>
         </CardFooter>
       </Card>
     </form>
