@@ -1,61 +1,29 @@
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
-import { Avatar, AvatarFallback } from "~/components/ui/avatar"
+import { type ClientLoaderFunction } from "@remix-run/react";
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card";
+import { Avatar, AvatarFallback } from "~/components/ui/avatar";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { queryClient } from "~/libs/tanstack-query";
+import { dashboardService } from "~/features/sales/services/dashboard";
 
+export const clientLoader: ClientLoaderFunction = async () => {
+  // prefetch the data imeediately when the page is loaded
+  await queryClient.prefetchQuery(dashboardService.getLatest());
 
-const data = [
-  {
-    name: 'Jan',
-    total: Math.floor(Math.random() * 5000) + 1000
-  },
-  {
-    name: 'Feb',
-    total: Math.floor(Math.random() * 5000) + 1000
-  },
-  {
-    name: 'Mar',
-    total: Math.floor(Math.random() * 5000) + 1000
-  },
-  {
-    name: 'Apr',
-    total: Math.floor(Math.random() * 5000) + 1000
-  },
-  {
-    name: 'May',
-    total: Math.floor(Math.random() * 5000) + 1000
-  },
-  {
-    name: 'Jun',
-    total: Math.floor(Math.random() * 5000) + 1000
-  },
-  {
-    name: 'Jul',
-    total: Math.floor(Math.random() * 5000) + 1000
-  },
-  {
-    name: 'Aug',
-    total: Math.floor(Math.random() * 5000) + 1000
-  },
-  {
-    name: 'Sep',
-    total: Math.floor(Math.random() * 5000) + 1000
-  },
-  {
-    name: 'Oct',
-    total: Math.floor(Math.random() * 5000) + 1000
-  },
-  {
-    name: 'Nov',
-    total: Math.floor(Math.random() * 5000) + 1000
-  },
-  {
-    name: 'Dec',
-    total: Math.floor(Math.random() * 5000) + 1000
-  }
-];
-
+  // returning null because we pass the data via tanstack-query
+  return null;
+};
 
 export default function IndexPage() {
+  // get the data from the cache
+  const { data } = useSuspenseQuery(dashboardService.getLatest());
+
   return (
     <>
       <div className="flex items-center">
@@ -65,9 +33,7 @@ export default function IndexPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Revenue
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -82,17 +48,17 @@ export default function IndexPage() {
             </svg>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$45,231.89</div>
+            <div className="text-2xl font-bold">
+              {data.dashboard.revenue.value}
+            </div>
             <p className="text-xs text-muted-foreground">
-              +20.1% from last month
+              {data.dashboard.revenue.compared}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Subscriptions
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Subscriptions</CardTitle>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -109,9 +75,11 @@ export default function IndexPage() {
             </svg>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+2350</div>
+            <div className="text-2xl font-bold">
+              {data.dashboard.subscription.value}
+            </div>
             <p className="text-xs text-muted-foreground">
-              +180.1% from last month
+              {data.dashboard.subscription.compared}
             </p>
           </CardContent>
         </Card>
@@ -133,17 +101,17 @@ export default function IndexPage() {
             </svg>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+12,234</div>
+            <div className="text-2xl font-bold">
+              {data.dashboard.sales.value}
+            </div>
             <p className="text-xs text-muted-foreground">
-              +19% from last month
+              {data.dashboard.sales.compared}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Active Now
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Active Now</CardTitle>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -158,9 +126,11 @@ export default function IndexPage() {
             </svg>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+573</div>
+            <div className="text-2xl font-bold">
+              {data.dashboard.activeUser.value}
+            </div>
             <p className="text-xs text-muted-foreground">
-              +201 since last hour
+              {data.dashboard.activeUser.compared}
             </p>
           </CardContent>
         </Card>
@@ -172,7 +142,7 @@ export default function IndexPage() {
           </CardHeader>
           <CardContent className="pl-2">
             <ResponsiveContainer width="100%" height={350}>
-              <BarChart data={data}>
+              <BarChart data={data.overview.chart}>
                 <XAxis
                   dataKey="name"
                   stroke="#888888"
@@ -192,12 +162,11 @@ export default function IndexPage() {
             </ResponsiveContainer>
           </CardContent>
         </Card>
+
         <Card className="col-span-4 md:col-span-3">
           <CardHeader>
             <CardTitle>Recent Sales</CardTitle>
-            <CardDescription>
-              You made 265 sales this month.
-            </CardDescription>
+            <CardDescription>You made 265 sales this month.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-8">
@@ -207,7 +176,9 @@ export default function IndexPage() {
                   <AvatarFallback>OM</AvatarFallback>
                 </Avatar>
                 <div className="ml-4 space-y-1">
-                  <p className="text-sm font-medium leading-none">Olivia Martin</p>
+                  <p className="text-sm font-medium leading-none">
+                    Olivia Martin
+                  </p>
                   <p className="text-sm text-muted-foreground">
                     olivia.martin@email.com
                   </p>
@@ -220,8 +191,12 @@ export default function IndexPage() {
                   <AvatarFallback>JL</AvatarFallback>
                 </Avatar>
                 <div className="ml-4 space-y-1">
-                  <p className="text-sm font-medium leading-none">Jackson Lee</p>
-                  <p className="text-sm text-muted-foreground">jackson.lee@email.com</p>
+                  <p className="text-sm font-medium leading-none">
+                    Jackson Lee
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    jackson.lee@email.com
+                  </p>
                 </div>
                 <div className="ml-auto font-medium">+$39.00</div>
               </div>
@@ -231,7 +206,9 @@ export default function IndexPage() {
                   <AvatarFallback>IN</AvatarFallback>
                 </Avatar>
                 <div className="ml-4 space-y-1">
-                  <p className="text-sm font-medium leading-none">Isabella Nguyen</p>
+                  <p className="text-sm font-medium leading-none">
+                    Isabella Nguyen
+                  </p>
                   <p className="text-sm text-muted-foreground">
                     isabella.nguyen@email.com
                   </p>
@@ -244,8 +221,12 @@ export default function IndexPage() {
                   <AvatarFallback>WK</AvatarFallback>
                 </Avatar>
                 <div className="ml-4 space-y-1">
-                  <p className="text-sm font-medium leading-none">William Kim</p>
-                  <p className="text-sm text-muted-foreground">will@email.com</p>
+                  <p className="text-sm font-medium leading-none">
+                    William Kim
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    will@email.com
+                  </p>
                 </div>
                 <div className="ml-auto font-medium">+$99.00</div>
               </div>
@@ -255,8 +236,12 @@ export default function IndexPage() {
                   <AvatarFallback>SD</AvatarFallback>
                 </Avatar>
                 <div className="ml-4 space-y-1">
-                  <p className="text-sm font-medium leading-none">Sofia Davis</p>
-                  <p className="text-sm text-muted-foreground">sofia.davis@email.com</p>
+                  <p className="text-sm font-medium leading-none">
+                    Sofia Davis
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    sofia.davis@email.com
+                  </p>
                 </div>
                 <div className="ml-auto font-medium">+$39.00</div>
               </div>
